@@ -43,6 +43,18 @@ if (!empty($_FILES['uploaded_file']) && $client->getAccessToken()) {
         $errorMessage = "There was an error uploading the file, please try again!";
     }
 }
+
+//get file list from google drive
+if (!isset($authUrl) && $client->getAccessToken()) {
+    try {
+        $service = new Google_Service_Drive($client);
+
+        $results = $service->files->listFiles();
+        $filesList = $results->getFiles();
+    } catch (\Exception $th) {
+        $errorMessage = $th->getMessage();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -63,6 +75,7 @@ if (!empty($_FILES['uploaded_file']) && $client->getAccessToken()) {
 <body>
     <div class="container">
         <h1 class="u-full-width" style="text-align: center; margin-top: 10%">GDrive File Uploader</h1>
+        <a class="u-full-width" href="?logout">Logout</a>
         <?php if (!empty($errorMessage)) : ?>
             <p style="color: red;"><b><?= $errorMessage ?></b></p>
         <?php endif ?>
@@ -81,12 +94,26 @@ if (!empty($_FILES['uploaded_file']) && $client->getAccessToken()) {
                 </div>
             </div>
         <?php else : ?>
-            <div class="u-full-width">
-                <form enctype="multipart/form-data" id="uploadform" action="" method="POST">
-                    <p>Upload your file</p>
-                    <input type="file" name="uploaded_file" onchange="document.getElementById('uploadform').submit()"></input><br />
-                    <input type="submit" value="Upload"></input>
-                </form>
+            <div class="row" style="margin-top: 5%">
+                <div class="four columns">
+                    <form enctype="multipart/form-data" id="uploadform" action="" method="POST">
+                        <p>Select a file to automatically Upload!</p>
+                        <input class="button button-primary" type="file" name="uploaded_file" onchange="document.getElementById('uploadform').submit()"></input><br />
+                    </form>
+                </div>
+                <div class="eight columns">
+                    <h5>Uploaded Files List</h5>
+                    <?php
+                    echo '<table>';
+
+                    foreach ($filesList as $file) {
+
+                        echo '<tr><td><img src="' . $file->getThumbnailLink() . '"/> ' . $file->getName() . '</td><td>' . $file->getCreatedTime() . '</td></tr>';
+                    }
+
+                    echo '</table>';
+                    ?>
+                </div>
             </div>
         <?php endif ?>
     </div>
