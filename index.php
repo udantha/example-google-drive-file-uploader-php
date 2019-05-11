@@ -12,10 +12,42 @@ if (!empty($_SESSION['upload_token'])) {
     $authUrl = $client->createAuthUrl();
 }
 
+/**
+ * Upload file to google drive
+ */
+$errorMessage = '';
+if (!empty($_FILES['uploaded_file']) && $client->getAccessToken()) {
+
+    if (file_exists($_FILES['uploaded_file']['tmp_name'])) {
+        try {
+            $fileName = basename($_FILES['uploaded_file']['name']);
+            $filePath = $_FILES['uploaded_file']['tmp_name'];
+
+            //start uploading to google drive
+            $service = new Google_Service_Drive($client);
+
+            $file = new Google_Service_Drive_DriveFile();
+            $file->setName($fileName);
+            $result2 = $service->files->create(
+                $file,
+                array(
+                    'data' => file_get_contents($filePath),
+                    'mimeType' => 'application/octet-stream',
+                    'uploadType' => 'multipart'
+                )
+            );
+        } catch (\Exception $th) {
+            $errorMessage = $th->getMessage();
+        }
+    } else {
+        $errorMessage = "There was an error uploading the file, please try again!";
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <title>Your page title here :)</title>
@@ -31,24 +63,32 @@ if (!empty($_SESSION['upload_token'])) {
 <body>
     <div class="container">
         <h1 class="u-full-width" style="text-align: center; margin-top: 10%">GDrive File Uploader</h1>
-        <div class="row">
-            <div class="one-half column" style="margin-top: 5%">
-                <h4>Welcome to Google Drive file uploader</h4>
-                <?php if (isset($authUrl)) : ?>
+        <?php if (!empty($errorMessage)) : ?>
+            <p style="color: red;"><b><?= $errorMessage ?></b></p>
+        <?php endif ?>
+
+        <?php if (isset($authUrl)) : ?>
+            <div class="row">
+                <div class="one-half column" style="margin-top: 5%">
+                    <h4>Welcome to Google Drive file uploader</h4>
                     <p>Looks like you haven't connected Google Drive. Click to get started.</p>
                     <div class="request">
                     </div>
-                <?php else : ?>
-                    <form method="POST">
-                        <input type="submit" value="Click here to upload two small (1MB) test files" />
-                    </form>
-                <?php endif ?>
-            </div>
-            <div class="one-half column" style="margin-top: 5%">
-                <a class='login' href='<?= $authUrl ?>'><button class="button-primary">Connect to Google Drive</button></a>
 
+                </div>
+                <div class="one-half column" style="margin-top: 5%">
+                    <a class='login' href='<?= $authUrl ?>'><button class="button-primary">Connect to Google Drive</button></a>
+                </div>
             </div>
-        </div>
+        <?php else : ?>
+            <div class="u-full-width">
+                <form enctype="multipart/form-data" id="uploadform" action="" method="POST">
+                    <p>Upload your file</p>
+                    <input type="file" name="uploaded_file" onchange="document.getElementById('uploadform').submit()"></input><br />
+                    <input type="submit" value="Upload"></input>
+                </form>
+            </div>
+        <?php endif ?>
     </div>
 </body>
 

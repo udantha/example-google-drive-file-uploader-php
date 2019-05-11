@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 //Initialization script
 include_once __DIR__ . '/vendor/autoload.php';
