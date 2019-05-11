@@ -1,6 +1,9 @@
 # Google Drive File Uploader using oAuth 2
 Following are technical instructions to run the application. Google Drive SDK is installed via Composer. SDK is available under `vendor` folder. css folder contains Skeleton.css framework for styling.
 
+## !Important
+secret.json file had to be committed to make sure testing doesn't fail. This was taken as a risk since Assignment was not given a place to uplad this.
+
 ## Requirements
 PHP 5.4.0 or higher
 
